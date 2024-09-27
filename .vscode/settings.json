@@ -1,0 +1,6 @@
+{
+    "datadog.ust.service.setup.linkedNames": [
+        "python"
+    ],
+    "datadog.ust.environment.setup.focusedName": "dev"
+}
