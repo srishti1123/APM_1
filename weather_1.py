@@ -1,3 +1,4 @@
+import ddtrace.sourcecode.setuptools_auto
 from flask import Flask, request, render_template, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
@@ -10,6 +11,7 @@ from pythonjsonlogger import jsonlogger
 from ddtrace import patch; patch(logging=True)
 from ddtrace import config
 from ddtrace import tracer
+
 
 
 config.env = os.getenv('DD_ENV', 'dev')  
