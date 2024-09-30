@@ -4,9 +4,10 @@
     ],
     "datadog.ust.environment.setup.focusedName": "dev",
     "datadog.codeInsights.codeInsight.view.filter.priorities": [],
-    "datadog.codeInsights.codeInsight.view.group": "service",
+    "datadog.codeInsights.codeInsight.view.group": "off",
     "datadog.codeInsights.codeInsight.view.filter.kinds": [],
     "datadog.codeInsights.codeInsight.view.showIgnoredCodeInsights": true,
     "datadog.codeInsights.codeInsight.view.useObjectTypeColor": true,
-    "datadog.codeInsights.codeInsight.view.showFetchTime": true
+    "datadog.codeInsights.codeInsight.view.showFetchTime": true,
+    "files.autoSave": "onFocusChange"
 }

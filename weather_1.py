@@ -13,11 +13,15 @@ from ddtrace import config
 from ddtrace import tracer
 
 
+# Manually set Git metadata environment variables (if not set in the shell)
+os.environ['DD_GIT_COMMIT_SHA'] = 'ec58ead5e32ddfd1834e0f30d627ef8909768d6a'
+os.environ['DD_GIT_REPOSITORY_URL'] = 'https://github.com/srishti1123/APM_1.git'
 
 config.env = os.getenv('DD_ENV', 'dev')  
 config.service = os.getenv('DD_SERVICE', 'python')  
 config.version = os.getenv('DD_VERSION', 'v2') 
 
+# no-dd-sa:python-best-practices/init-method-required
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
@@ -27,6 +31,8 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         log_record['dd.service'] = config.service
         log_record['dd.env'] = config.env
         log_record['dd.version'] = config.version
+        log_record['git.commit.sha'] = os.getenv('DD_GIT_COMMIT_SHA', 'unknown')
+        log_record['git.repository_url'] = os.getenv('DD_GIT_REPOSITORY_URL', 'unknown')
 logHandler = logging.FileHandler(filename='C:\\Users\\Srishti\\Downloads\\APM_1\\APM_1\\logs.json')
 formatter = jsonlogger.JsonFormatter()
 logHandler.setFormatter(formatter)
@@ -41,6 +47,7 @@ logger.addHandler(logHandler)
 logger.setLevel(logging.INFO)
 
 tracer.set_tags({"track_error":True})
+
 app = Flask(__name__)
 
 # Setting path for database file
