@@ -2,5 +2,11 @@
     "datadog.ust.service.setup.linkedNames": [
         "python"
     ],
-    "datadog.ust.environment.setup.focusedName": "dev"
+    "datadog.ust.environment.setup.focusedName": "dev",
+    "datadog.codeInsights.codeInsight.view.filter.priorities": [],
+    "datadog.codeInsights.codeInsight.view.group": "service",
+    "datadog.codeInsights.codeInsight.view.filter.kinds": [],
+    "datadog.codeInsights.codeInsight.view.showIgnoredCodeInsights": true,
+    "datadog.codeInsights.codeInsight.view.useObjectTypeColor": true,
+    "datadog.codeInsights.codeInsight.view.showFetchTime": true
 }
