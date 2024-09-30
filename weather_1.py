@@ -21,7 +21,7 @@ config.env = os.getenv('DD_ENV', 'dev')
 config.service = os.getenv('DD_SERVICE', 'python')  
 config.version = os.getenv('DD_VERSION', 'v2') 
 
-# no-dd-sa:python-best-practices/init-method-required
+# Custom JSON formatter to include Datadog and Git metadata
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
@@ -33,8 +33,10 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         log_record['dd.version'] = config.version
         log_record['git.commit.sha'] = os.getenv('DD_GIT_COMMIT_SHA', 'unknown')
         log_record['git.repository_url'] = os.getenv('DD_GIT_REPOSITORY_URL', 'unknown')
+
+# Set up logger with a file handler
 logHandler = logging.FileHandler(filename='C:\\Users\\Srishti\\Downloads\\APM_1\\APM_1\\logs.json')
-formatter = jsonlogger.JsonFormatter()
+formatter = CustomJsonFormatter()
 logHandler.setFormatter(formatter)
 
 FORMAT = ('%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] '
@@ -104,7 +106,7 @@ def save_to_database(weather_details):
         logger.exception("Error saving weather details to database")
 
 def get_weather_details(city):
-    api_key = 'bed041794dd5135c931e504ed1cfdf87'
+    api_key = 'bed041794dd5135c931e504ed1cfdf87'  # Replace with your actual API key
     logger.info(f"Fetching weather details for {city}")
     try:
         source = urllib.request.urlopen(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}').read()
@@ -136,6 +138,45 @@ def get_weather_details(city):
     
     return data
 
+# New route to trigger an error with variables
+@app.route('/add-profile', methods=['POST'])
+def add_profile():
+    """
+    This route simulates adding a new profile to the database.
+    It includes a validation step to ensure 'list_' is not null and meets criteria.
+    """
+    try:
+        # Simulate receiving data from a form
+        list_ = request.form.get('list_name')  # This could be None if not provided
+        logger.info(f"Received list_name: {list_}")
+        
+        # Validation: Check if 'list_' is provided and is a non-empty string
+        if not list_ or not list_.strip():
+            logger.error("Invalid 'list_name' provided: cannot be null or empty")
+            return abort(400, description="Invalid 'list_name': cannot be null or empty")
+        
+        # Additional Validation: Ensure 'list_' is a valid city name (e.g., exists in a predefined list)
+        valid_cities = ['Delhi', 'New York', 'San Francisco', 'London', 'Paris']  # Example list
+        if list_ not in valid_cities:
+            logger.error(f"Invalid 'list_name' provided: {list_} is not a recognized city")
+            return abort(400, description=f"Invalid 'list_name': {list_} is not a recognized city")
+        
+        # Proceed to add the profile since 'list_' is valid
+        profile = Weather(
+            country_code="US",
+            coordinate="-122.4194 37.7749",
+            temp="290k",
+            pressure=1013,
+            humidity=80,
+            cityname=list_,  # Now assured to be valid
+        )
+        db.session.add(profile)
+        db.session.commit()
+        logger.info("Profile added successfully")
+        return "Profile added successfully!", 200
+    except Exception as e:
+        logger.exception("Error occurred while adding profile")
+        return abort(500)
 
 @app.route('/', methods=['POST', 'GET'])
 def weather():
