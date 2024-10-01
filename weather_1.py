@@ -11,6 +11,12 @@ from pythonjsonlogger import jsonlogger
 from ddtrace import patch; patch(logging=True)
 from ddtrace import config
 from ddtrace import tracer
+from ddtrace import profiler
+import atexit
+profiler.start()
+
+# Ensure the profiler stops gracefully on exit
+atexit.register(lambda: profiler.stop())
 
 
 # Manually set Git metadata environment variables (if not set in the shell)
@@ -34,7 +40,7 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):
         log_record['git.commit.sha'] = os.getenv('DD_GIT_COMMIT_SHA', 'unknown')
         log_record['git.repository_url'] = os.getenv('DD_GIT_REPOSITORY_URL', 'unknown')
 logHandler = logging.FileHandler(filename='C:\\Users\\Srishti\\Downloads\\APM_1\\APM_1\\logs.json')
-formatter = jsonlogger.JsonFormatter()
+formatter = CustomJsonFormatter()
 logHandler.setFormatter(formatter)
 
 FORMAT = ('%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] '
@@ -144,18 +150,18 @@ def check_valid_city(cityname):
             
         if not any(city['name'] == cityname for city in cities):
             logger.error("Validation failed: %s is not a valid city name", cityname)
-            return abort(400)
+            return abort(400,description="Invalid city name provided")
 
         logger.info("City validation successful: %s", cityname)
     except FileNotFoundError:
         logger.exception("cities.json file not found")
-        return abort(500)
+        return abort(500,description="Internal Server Error.")
     except json.JSONDecodeError:
         logger.exception("Error decoding cities.json file")
-        return abort(500)
+        return abort(500,description="Internal Server Error.")
     except Exception as e:
         logger.exception("Unexpected error during city validation")
-        return abort(500)
+        return abort(500,description="Internal Server Error.")
 
     return True
 
