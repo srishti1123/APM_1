@@ -22,6 +22,7 @@ config.service = os.getenv('DD_SERVICE', 'python')
 config.version = os.getenv('DD_VERSION', 'v2') 
 
 # Custom JSON formatter to include Datadog and Git metadata
+# no-dd-sa:python-best-practices/init-method-required
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
