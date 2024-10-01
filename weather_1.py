@@ -137,15 +137,28 @@ def get_weather_details(city):
     return data
 
 def check_valid_city(cityname):
-    with open("cities.json", encoding="utf8") as file:
-        # Load its content and make a new dictionary
-        cities = json.load(file)
-
+    logger.info("Validating city: %s", cityname)
+    try:
+        with open("cities.json", encoding="utf8") as file:
+            cities = json.load(file)
+            
         if not any(city['name'] == cityname for city in cities):
-            logger.error("%s city is not a valid city name", cityname)
+            logger.error("Validation failed: %s is not a valid city name", cityname)
             return abort(400)
 
+        logger.info("City validation successful: %s", cityname)
+    except FileNotFoundError:
+        logger.exception("cities.json file not found")
+        return abort(500)
+    except json.JSONDecodeError:
+        logger.exception("Error decoding cities.json file")
+        return abort(500)
+    except Exception as e:
+        logger.exception("Unexpected error during city validation")
+        return abort(500)
+
     return True
+
 
 
 @app.route('/', methods=['POST', 'GET'])
