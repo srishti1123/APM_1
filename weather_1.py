@@ -11,12 +11,13 @@ from pythonjsonlogger import jsonlogger
 from ddtrace import patch; patch(logging=True)
 from ddtrace import config
 from ddtrace import tracer
-from ddtrace import profiler
+from ddtrace.profiling import Profiler
 import atexit
+profiler = Profiler()
 profiler.start()
 
 # Ensure the profiler stops gracefully on exit
-atexit.register(lambda: profiler.stop())
+atexit.register( profiler.stop)
 
 
 # Manually set Git metadata environment variables (if not set in the shell)
@@ -165,7 +166,20 @@ def check_valid_city(cityname):
 
     return True
 
-
+def check_valid_list(list_):
+    logger.info("Validating list_: %s", list_)
+    try:
+        if not list_ or not list_.strip():
+            logger.error("Validation failed: 'list_' cannot be null or empty")
+            return abort(400, description="'list_' cannot be null or empty.")
+        
+        # Additional validation logic can be added here
+        logger.info("List_ validation successful: %s", list_)
+    except Exception as e:
+        logger.exception("Unexpected error during list_ validation")
+        return abort(500, description="Internal Server Error.")
+    
+    return True
 
 @app.route('/', methods=['POST', 'GET'])
 def weather():
@@ -185,6 +199,32 @@ def weather():
         return render_template('index.html', data=data)
     except Exception as e:
         logger.exception("Error occurred during request handling")
+        return abort(500)
+    
+@app.route('/add-profile', methods=['POST'])
+def add_profile():
+    try:
+        list_ = request.form.get('list_name')  # This could be None if not provided
+        logger.info(f"Received list_name: {list_}")
+        
+        # Validation
+        check_valid_list(list_)
+        
+        # Proceed with adding profile
+        profile = Weather(
+            country_code="US",
+            coordinate="-122.4194 37.7749",
+            temp="290k",
+            pressure=1013,
+            humidity=80,
+            cityname=list_,
+        )
+        db.session.add(profile)
+        db.session.commit()
+        logger.info("Profile added successfully")
+        return "Profile added successfully!", 200
+    except Exception as e:
+        logger.exception("Error occurred while adding profile")
         return abort(500)
 
 if __name__ == '__main__':
