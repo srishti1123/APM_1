@@ -142,7 +142,7 @@ def check_valid_city(cityname):
         cities = json.load(file)
 
         if not any(city['name'] == cityname for city in cities):
-            log.error("%s city is not a valid city name", cityname)
+            logger.error("%s city is not a valid city name", cityname)
             return abort(400)
 
     return True
