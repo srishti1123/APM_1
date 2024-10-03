@@ -13,12 +13,15 @@ from ddtrace import config
 from ddtrace import tracer
 from ddtrace.profiling import Profiler
 import atexit
+
+# Initialize the profiler
 profiler = Profiler()
+
+# Start the profiler
 profiler.start()
 
 # Ensure the profiler stops gracefully on exit
-atexit.register( profiler.stop)
-
+atexit.register(profiler.stop)
 
 # Manually set Git metadata environment variables (if not set in the shell)
 os.environ['DD_GIT_COMMIT_SHA'] = 'ec58ead5e32ddfd1834e0f30d627ef8909768d6a'
@@ -28,18 +31,23 @@ config.env = os.getenv('DD_ENV', 'dev')
 config.service = os.getenv('DD_SERVICE', 'python')  
 config.version = os.getenv('DD_VERSION', 'v2') 
 
-# no-dd-sa:python-best-practices/init-method-required
+# Custom JSON formatter to include Datadog and Git metadata
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
-        # Add trace_id and span_id from Datadog tracing
-        log_record['dd.trace_id'] = tracer.current_trace_id()
-        log_record['dd.span_id'] = tracer.current_span_id()
+        current_span = tracer.current_span()
+        if current_span:
+            log_record['dd.trace_id'] = current_span.trace_id
+            log_record['dd.span_id'] = current_span.span_id
+        else:
+            log_record['dd.trace_id'] = None
+            log_record['dd.span_id'] = None
         log_record['dd.service'] = config.service
         log_record['dd.env'] = config.env
         log_record['dd.version'] = config.version
         log_record['git.commit.sha'] = os.getenv('DD_GIT_COMMIT_SHA', 'unknown')
         log_record['git.repository_url'] = os.getenv('DD_GIT_REPOSITORY_URL', 'unknown')
+
 logHandler = logging.FileHandler(filename='C:\\Users\\Srishti\\Downloads\\APM_1\\APM_1\\logs.json')
 formatter = CustomJsonFormatter()
 logHandler.setFormatter(formatter)
@@ -53,7 +61,7 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logHandler)
 logger.setLevel(logging.INFO)
 
-tracer.set_tags({"track_error":True})
+tracer.set_tags({"track_error": True})
 
 app = Flask(__name__)
 
@@ -151,18 +159,18 @@ def check_valid_city(cityname):
             
         if not any(city['name'] == cityname for city in cities):
             logger.error("Validation failed: %s is not a valid city name", cityname)
-            return abort(400,description="Invalid city name provided")
+            return abort(400, description="Invalid city name provided")
 
         logger.info("City validation successful: %s", cityname)
     except FileNotFoundError:
         logger.exception("cities.json file not found")
-        return abort(500,description="Internal Server Error.")
+        return abort(500, description="Internal Server Error.")
     except json.JSONDecodeError:
         logger.exception("Error decoding cities.json file")
-        return abort(500,description="Internal Server Error.")
+        return abort(500, description="Internal Server Error.")
     except Exception as e:
         logger.exception("Unexpected error during city validation")
-        return abort(500,description="Internal Server Error.")
+        return abort(500, description="Internal Server Error.")
 
     return True
 
