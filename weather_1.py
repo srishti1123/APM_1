@@ -13,6 +13,9 @@ from ddtrace import config
 from ddtrace import tracer
 from ddtrace.profiling import Profiler
 import atexit
+from ddtrace.debugging import DynamicInstrumentation
+
+DynamicInstrumentation.enable()
 
 # Initialize the profiler
 profiler = Profiler()
