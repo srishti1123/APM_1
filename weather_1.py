@@ -128,7 +128,7 @@ def get_weather_details(city):
         source = urllib.request.urlopen(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}').read()
     except Exception as e:
         logger.exception("Error occurred while fetching weather data")
-        return abort(400)
+        return abort(400)  # Simulate Bad Request
 
     # Converting json data to dictionary
     try:
@@ -136,7 +136,7 @@ def get_weather_details(city):
         logger.debug(f"Weather data fetched: {list_of_data}")
     except json.JSONDecodeError as e:
         logger.exception("Error decoding JSON response")
-        return abort(500)
+        return abort(422)  # Unprocessable Entity
 
     # Data for variable list_of_data
     data = {
@@ -167,10 +167,10 @@ def check_valid_city(cityname):
         logger.info("City validation successful: %s", cityname)
     except FileNotFoundError:
         logger.exception("cities.json file not found")
-        return abort(500, description="Internal Server Error.")
+        return abort(404, description="Cities file not found")  # Not Found
     except json.JSONDecodeError:
         logger.exception("Error decoding cities.json file")
-        return abort(500, description="Internal Server Error.")
+        return abort(422, description="Invalid data format in cities.json")  # Unprocessable Entity
     except Exception as e:
         logger.exception("Unexpected error during city validation")
         return abort(500, description="Internal Server Error.")
@@ -182,7 +182,7 @@ def check_valid_list(list_):
     try:
         if not list_ or not list_.strip():
             logger.error("Validation failed: 'list_' cannot be null or empty")
-            return abort(400, description="'list_' cannot be null or empty.")
+            return abort(400, description="'list_' cannot be null or empty.")  # Bad Request
         
         # Additional validation logic can be added here
         logger.info("List_ validation successful: %s", list_)
@@ -202,12 +202,14 @@ def weather():
             city = get_default_city()
             logger.info(f"Default city being used: {city}")
         
-
         check_valid_city(city)
         data = get_weather_details(city)
         logger.info(f"Rendering weather details for {city}")
         
         return render_template('index.html', data=data)
+    except Exception as e:
+        logger.exception("Error occurred during request handling")
+        return abort(500)
     except Exception as e:
         logger.exception("Error occurred during request handling")
         return abort(500)
@@ -240,8 +242,3 @@ def add_profile():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8126)
-
-# class Foo:
-#       def bar(bar):
-#         pass
-# 123==nan
